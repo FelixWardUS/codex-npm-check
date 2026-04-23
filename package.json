@@ -1,0 +1,16 @@
+{
+  "name": "check-codex-release",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cross-platform Codex release checker CLI",
+  "type": "module",
+  "bin": {
+    "ccr": "./bin/ccr.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
