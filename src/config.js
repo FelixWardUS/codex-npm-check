@@ -7,6 +7,21 @@ export const DEFAULT_CONFIG = {
   latestCount: 5,
 };
 
+export function normalizeConfig(config) {
+  if (!config || typeof config !== "object") {
+    return { ...DEFAULT_CONFIG };
+  }
+
+  const platforms = Array.isArray(config.platforms) && config.platforms.length > 0
+    ? [...new Set(config.platforms.map(String))]
+    : DEFAULT_CONFIG.platforms;
+  const latestCount = Number.isInteger(config.latestCount) && config.latestCount > 0
+    ? config.latestCount
+    : DEFAULT_CONFIG.latestCount;
+
+  return { platforms, latestCount };
+}
+
 export function getConfigBaseDir() {
   if (process.env.CCR_CONFIG_HOME) {
     return process.env.CCR_CONFIG_HOME;
@@ -33,13 +48,13 @@ export async function loadConfig({ baseDir = getConfigBaseDir() } = {}) {
     return null;
   }
 
-  return JSON.parse(await readFile(filePath, "utf8"));
+  return normalizeConfig(JSON.parse(await readFile(filePath, "utf8")));
 }
 
 export async function saveConfig({ baseDir = getConfigBaseDir(), config }) {
   const filePath = getConfigPath({ baseDir });
   await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+  await writeFile(filePath, `${JSON.stringify(normalizeConfig(config), null, 2)}\n`, "utf8");
 }
 
 export async function deleteConfig({ baseDir = getConfigBaseDir() } = {}) {

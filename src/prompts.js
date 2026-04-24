@@ -1,4 +1,4 @@
-import readline from "node:readline/promises";
+import readline from "node:readline";
 import { DEFAULT_CONFIG } from "./config.js";
 
 export const PLATFORM_OPTIONS = [
@@ -56,23 +56,55 @@ export async function promptForConfig({
   output = process.stdout,
   defaults = DEFAULT_CONFIG,
 }) {
-  const rl = readline.createInterface({ input, output });
+  output.write("Configure ccr\n\n");
+  output.write("Target platforms:\n");
+  PLATFORM_OPTIONS.forEach((option, index) => {
+    output.write(`  ${index + 1}. ${option.label} (${option.id})\n`);
+  });
 
-  try {
-    output.write("Configure ccr\n\n");
-    output.write("Target platforms:\n");
-    PLATFORM_OPTIONS.forEach((option, index) => {
-      output.write(`  ${index + 1}. ${option.label} (${option.id})\n`);
+  const platformPrompt =
+    `Select platforms (comma-separated numbers) [${selectedIndexes(defaults.platforms)}]: `;
+  const latestPrompt =
+    `How many latest stable versions should be checked? [${defaults.latestCount}]: `;
+
+  if (!input.isTTY) {
+    let buffered = "";
+    for await (const chunk of input) {
+      buffered += chunk;
+    }
+
+    const answers = buffered.split(/\r?\n/);
+    while (true) {
+      output.write(platformPrompt);
+      const platformAnswer = answers.shift() ?? "";
+      output.write(latestPrompt);
+      const latestAnswer = answers.shift() ?? "";
+
+      try {
+        return buildConfigFromAnswers({ platformAnswer, latestAnswer, defaults });
+      } catch (error) {
+        output.write(`${error.message}\n\n`);
+      }
+    }
+  }
+
+  const rl = readline.createInterface({ input, output });
+  const ask = (prompt) =>
+    new Promise((resolve) => {
+      rl.question(prompt, resolve);
     });
 
-    const platformAnswer = await rl.question(
-      `Select platforms (comma-separated numbers) [${selectedIndexes(defaults.platforms)}]: `,
-    );
-    const latestAnswer = await rl.question(
-      `How many latest stable versions should be checked? [${defaults.latestCount}]: `,
-    );
+  try {
+    while (true) {
+      const platformAnswer = await ask(platformPrompt);
+      const latestAnswer = await ask(latestPrompt);
 
-    return buildConfigFromAnswers({ platformAnswer, latestAnswer, defaults });
+      try {
+        return buildConfigFromAnswers({ platformAnswer, latestAnswer, defaults });
+      } catch (error) {
+        output.write(`${error.message}\n\n`);
+      }
+    }
   } finally {
     rl.close();
   }

@@ -2,8 +2,10 @@
 
 import { main } from "../src/index.js";
 
-main(process.argv.slice(2)).catch((error) => {
+try {
+  await main(process.argv.slice(2));
+} catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);
   process.exitCode = 1;
-});
+}
