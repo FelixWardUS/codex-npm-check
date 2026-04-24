@@ -6,14 +6,14 @@ import { promptForConfig } from "./prompts.js";
 function usage() {
   return [
     "Usage: ccr [version]",
-    "       ccr -set",
+    "       ccr --set",
     "       ccr --show",
     "       ccr --reset",
     "",
     "Commands:",
     "  ccr         Run checks using saved configuration",
     "  ccr 0.124.0 Check one specific Codex version with saved platforms",
-    "  ccr -set    Update saved platforms and latest-version count",
+    "  ccr --set   Update saved platforms and latest-version count",
     "  ccr --show  Print current configuration",
     "  ccr --reset Delete current configuration",
     "",
@@ -88,7 +88,7 @@ export async function main(args) {
     return;
   }
 
-  if (args.includes("-set") || args.includes("--set")) {
+  if (args.includes("--set")) {
     const config = await ensureConfig({ forceSetup: true });
     await runChecks({ config });
     return;
@@ -108,6 +108,17 @@ export async function main(args) {
   if (args.includes("--reset")) {
     await deleteConfig();
     process.stdout.write("Configuration reset.\n");
+    return;
+  }
+
+  const unknownOptions = args.filter(
+    (arg) =>
+      arg.startsWith("-") &&
+      !["--help", "-h", "--set", "--show", "--reset"].includes(arg),
+  );
+  if (unknownOptions.length > 0) {
+    process.stdout.write(usage());
+    process.exitCode = 64;
     return;
   }
 

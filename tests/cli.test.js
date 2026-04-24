@@ -140,3 +140,13 @@ test("ccr --reset removes the saved configuration", async () => {
   assert.match(result.stdout, /Configuration reset/);
   await assert.rejects(access(configPath));
 });
+
+test("ccr -set is rejected as an invalid option", async () => {
+  const result = spawnSync("node", ["bin/ccr.js", "-set"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 64);
+  assert.match(result.stdout, /Usage: ccr/);
+});

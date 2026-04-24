@@ -26,18 +26,23 @@ Clone the repository, then from the project root run:
 
 ```bash
 npm test
-bash scripts/install-local-link.sh
+npm install -g .
 ```
 
-That creates `~/.local/bin/ccr` as a symlink to this repository's CLI entry.
-Make sure `~/.local/bin` is in your `PATH`.
+That installs the `ccr` command globally through npm.
+
+If you specifically want a local symlink to this working tree instead, you can still use:
+
+```bash
+bash scripts/install-local-link.sh
+```
 
 ## Usage
 
 ```bash
 ccr
 ccr 0.124.0
-ccr -set
+ccr --set
 ccr --show
 ccr --reset
 ```
@@ -57,7 +62,7 @@ It saves that config and immediately runs the checks.
   Runs checks using the saved platform list and latest-version count.
 - `ccr 0.124.0`
   Checks one specific Codex version with the saved platform list.
-- `ccr -set`
+- `ccr --set`
   Re-runs setup and overwrites the saved config.
 - `ccr --show`
   Prints the current config.
