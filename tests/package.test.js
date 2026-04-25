@@ -6,7 +6,7 @@ test("package manifest supports standard global installation", async () => {
   const pkg = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
 
   assert.notEqual(pkg.private, true);
-  assert.equal(pkg.bin.ccr, "./bin/ccr.js");
+  assert.equal(pkg.bin.ccr, "bin/ccr.js");
   assert.equal(pkg.license, "MIT");
   assert.equal(pkg.repository.url, "git+https://github.com/FelixWardUS/check-codex-release.git");
   assert.equal(pkg.bugs.url, "https://github.com/FelixWardUS/check-codex-release/issues");
