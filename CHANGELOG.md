@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.1 - 2026-04-25
+
+### Fixed
+
+- Treat only npm `E404` responses as missing packages; other npm query failures now surface as errors instead of false missing-platform results.
+
+### Changed
+
+- Document Node.js 20 setup in the GitHub Actions example.
+- Clarify release install instructions with pinned npm and source install options.
+
 ## 0.1.0 - 2026-04-25
 
 ### Added

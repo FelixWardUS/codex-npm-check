@@ -107,7 +107,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: FelixWardUS/check-codex-release@v0.1.0
+      - uses: FelixWardUS/check-codex-release@v0.1.1
         with:
           platforms: linux-x64,darwin-arm64,win32-x64
           latest: 3
