@@ -150,3 +150,69 @@ test("ccr -set is rejected as an invalid option", async () => {
   assert.equal(result.status, 64);
   assert.match(result.stdout, /Usage: ccr/);
 });
+
+test("ccr supports JSON output with one-run platform and latest overrides", async () => {
+  const { dir, stubPath } = await makeStubNpm();
+
+  const result = spawnSync(
+    "node",
+    ["bin/ccr.js", "--platform", "linux-x64,darwin-arm64", "--latest", "1", "--json"],
+    {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        NPM_BIN: stubPath,
+        CCR_CONFIG_HOME: path.join(dir, "config"),
+      },
+    },
+  );
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stderr, "");
+  assert.doesNotMatch(result.stdout, /Checking latest/);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.ok, false);
+  assert.equal(parsed.versions.length, 1);
+  assert.equal(parsed.versions[0].version, "0.124.0");
+  assert.equal(parsed.versions[0].platformStatuses["linux-x64"], false);
+  assert.equal(parsed.versions[0].platformStatuses["darwin-arm64"], true);
+});
+
+test("ccr checks an explicit version with a one-run platform override and no saved config", async () => {
+  const { dir, stubPath } = await makeStubNpm();
+
+  const result = spawnSync(
+    "node",
+    ["bin/ccr.js", "0.123.0", "--platform=linux-x64", "--json"],
+    {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        NPM_BIN: stubPath,
+        CCR_CONFIG_HOME: path.join(dir, "config"),
+      },
+    },
+  );
+
+  assert.equal(result.status, 0);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.ok, true);
+  assert.deepEqual(parsed.versions[0].platformStatuses, {
+    "linux-x64": true,
+  });
+});
+
+test("ccr rejects invalid one-run platforms", async () => {
+  const result = spawnSync("node", ["bin/ccr.js", "--platform", "linux-riscv64"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 64);
+  assert.match(result.stdout, /Unsupported platform: linux-riscv64/);
+  assert.match(result.stdout, /Usage: ccr/);
+});

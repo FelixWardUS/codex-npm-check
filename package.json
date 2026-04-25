@@ -1,15 +1,42 @@
 {
   "name": "check-codex-release",
   "version": "0.1.0",
-  "description": "Cross-platform Codex release checker CLI",
+  "description": "Check whether Codex CLI npm releases include the platform packages you need.",
   "type": "module",
+  "license": "MIT",
+  "author": "FelixWard",
+  "homepage": "https://github.com/FelixWardUS/check-codex-release#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FelixWardUS/check-codex-release.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FelixWardUS/check-codex-release/issues"
+  },
+  "keywords": [
+    "codex",
+    "codex-cli",
+    "openai",
+    "openai-codex",
+    "cli",
+    "npm",
+    "release-checker",
+    "release-monitoring",
+    "cross-platform",
+    "devtools"
+  ],
   "bin": {
     "ccr": "./bin/ccr.js"
   },
   "files": [
     "bin",
-    "src"
+    "src",
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "test": "node --test",
     "install:local": "bash scripts/install-local-link.sh"

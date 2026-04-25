@@ -1,0 +1,46 @@
+name: Check Codex release
+description: Check whether Codex CLI npm releases include the platform packages you need.
+author: FelixWard
+
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  platforms:
+    description: Comma-separated platform package suffixes to check.
+    required: true
+  latest:
+    description: Number of latest stable Codex CLI versions to check when version is unset.
+    required: false
+    default: "3"
+  version:
+    description: Specific Codex CLI version to check.
+    required: false
+    default: ""
+  json:
+    description: Print JSON output instead of text.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Check Codex release packages
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        args=()
+        if [ -n "${{ inputs.version }}" ]; then
+          args+=("${{ inputs.version }}")
+        fi
+
+        args+=("--platform" "${{ inputs.platforms }}")
+        args+=("--latest" "${{ inputs.latest }}")
+
+        if [ "${{ inputs.json }}" = "true" ]; then
+          args+=("--json")
+        fi
+
+        node "$GITHUB_ACTION_PATH/bin/ccr.js" "${args[@]}"
