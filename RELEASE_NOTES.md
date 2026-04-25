@@ -11,9 +11,24 @@ Highlights:
 - One-off checks for a specific Codex CLI version.
 - Non-zero exit code when a configured platform package is missing.
 
-Install:
+Install from npm:
 
 ```bash
-npm install -g check-codex-release
+npm install -g check-codex-release@0.1.0
+ccr
+```
+
+Source install options:
+
+```bash
+npm install -g https://github.com/FelixWardUS/check-codex-release/archive/refs/tags/v0.1.0.tar.gz
+ccr
+```
+
+Or download `Source code` from this release, then run:
+
+```bash
+cd check-codex-release-0.1.0
+npm install -g .
 ccr
 ```

@@ -22,3 +22,10 @@ test("GitHub Action wrapper runs the local CLI", async () => {
   assert.match(action, /platforms:/);
   assert.match(action, /node "\$GITHUB_ACTION_PATH\/bin\/ccr\.js"/);
 });
+
+test("GitHub Action README example sets up Node.js 20", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+
+  assert.match(readme, /actions\/setup-node@v4/);
+  assert.match(readme, /node-version: 20/);
+});

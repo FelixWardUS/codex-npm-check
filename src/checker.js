@@ -3,6 +3,18 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
+function errorOutput(error) {
+  if (!error || typeof error !== "object") {
+    return String(error);
+  }
+
+  return [error.stderr, error.stdout, error.message].filter(Boolean).map(String).join("\n");
+}
+
+function isMissingPackageError(error) {
+  return /\bE404\b|404 Not Found/.test(errorOutput(error));
+}
+
 export function summarizeVersionStatus(version, platformStatuses, { mainExists = true } = {}) {
   const lines = [version];
   let ok = mainExists;
@@ -25,8 +37,13 @@ async function packageExists(packageSpec, { npmBin = process.env.NPM_BIN || "npm
   try {
     await execFileAsync(npmBin, ["view", packageSpec, "version"], { encoding: "utf8" });
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    if (isMissingPackageError(error)) {
+      return false;
+    }
+
+    const details = errorOutput(error).trim();
+    throw new Error(`npm view failed for ${packageSpec}: ${details}`, { cause: error });
   }
 }
 

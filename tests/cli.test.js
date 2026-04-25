@@ -31,10 +31,39 @@ if (mainMatch) {
 const platformMatch = args.match(/^view @openai\\/codex@(\\d+\\.\\d+\\.\\d+)-(linux-x64|darwin-arm64) version$/);
 if (platformMatch) {
   if (platformMatch[1] === "0.124.0" && platformMatch[2] === "linux-x64") {
+    process.stderr.write("npm error code E404\\nNot Found\\n");
     process.exit(1);
   }
   process.stdout.write(platformMatch[0]);
   process.exit(0);
+}
+process.exit(1);
+`,
+    { mode: 0o755 },
+  );
+
+  return { dir, stubPath };
+}
+
+async function makeRegistryErrorStubNpm() {
+  const dir = await mkdtemp(path.join(tmpdir(), "ccr-cli-"));
+  const stubPath = path.join(dir, "npm");
+
+  await writeFile(
+    stubPath,
+    `#!/usr/bin/env node
+const args = process.argv.slice(2).join(" ");
+if (args === "view @openai/codex versions --json") {
+  process.stdout.write(JSON.stringify(["0.124.0"]));
+  process.exit(0);
+}
+if (args === "view @openai/codex@0.124.0 version") {
+  process.stdout.write("0.124.0");
+  process.exit(0);
+}
+if (args === "view @openai/codex@0.124.0-linux-x64 version") {
+  process.stderr.write("npm error code EAI_AGAIN\\nnetwork timeout\\n");
+  process.exit(1);
 }
 process.exit(1);
 `,
@@ -215,4 +244,28 @@ test("ccr rejects invalid one-run platforms", async () => {
   assert.equal(result.status, 64);
   assert.match(result.stdout, /Unsupported platform: linux-riscv64/);
   assert.match(result.stdout, /Usage: ccr/);
+});
+
+test("ccr reports npm query failures that are not missing packages", async () => {
+  const { dir, stubPath } = await makeRegistryErrorStubNpm();
+
+  const result = spawnSync(
+    "node",
+    ["bin/ccr.js", "--platform", "linux-x64", "--latest", "1", "--json"],
+    {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        NPM_BIN: stubPath,
+        CCR_CONFIG_HOME: path.join(dir, "config"),
+      },
+    },
+  );
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /npm view failed/);
+  assert.match(result.stderr, /@openai\/codex@0\.124\.0-linux-x64/);
+  assert.match(result.stderr, /EAI_AGAIN/);
 });
