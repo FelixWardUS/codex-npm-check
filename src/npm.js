@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { getRegistrySources } from "./registries.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -20,13 +21,20 @@ export function parseStableVersions(versions) {
   return [...new Set(versions.filter((value) => /^\d+\.\d+\.\d+$/.test(value)))].sort(compareSemver);
 }
 
-export async function getAllStableVersions({ npmBin = process.env.NPM_BIN || "npm" } = {}) {
-  const { stdout } = await execFileAsync(npmBin, ["view", "@openai/codex", "versions", "--json"], {
-    encoding: "utf8",
-  });
+async function getVersionsFromNpm({ npmBin = process.env.NPM_BIN || "npm", source = null } = {}) {
+  const args = ["view", "@openai/codex", "versions", "--json", ...(source?.npmArgs ?? [])];
 
+  const { stdout } = await execFileAsync(npmBin, args, { encoding: "utf8" });
   const parsed = JSON.parse(stdout);
-  const versions = Array.isArray(parsed) ? parsed : [parsed];
+  return Array.isArray(parsed) ? parsed : [parsed];
+}
+
+export async function getAllStableVersions({ npmBin = process.env.NPM_BIN || "npm" } = {}) {
+  const sources = await getRegistrySources({ npmBin });
+  const versionLists = await Promise.all(
+    sources.map((source) => getVersionsFromNpm({ npmBin, source })),
+  );
+  const versions = versionLists.flat();
   return parseStableVersions(versions);
 }
 

@@ -51,21 +51,30 @@ ccr --reset
 - `ccr --show` prints the current config.
 - `ccr --reset` deletes the current config.
 
-If any selected platform package is missing for any checked version, `ccr`
-exits with a non-zero status code.
+By default, `ccr` checks both your local npm registry configuration and the
+official npm registry. If your local npm registry is already
+`https://registry.npmjs.org/`, it checks that source only once. If any selected
+package metadata or package tarball is unavailable in any checked registry for
+any checked version, `ccr` exits with a non-zero status code.
+When checking latest releases, stable version lists are merged from both
+registries before the latest count is applied.
 
 ## Example Output
 
 ```text
 Checking latest 3 stable releases...
 
-0.124.0
-  linux-x64: missing
-  darwin-arm64: OK
+0.124.0: issues found ❌
+  main package: OK ✅
+  linux-x64: issues found ❌
+    configured: OK ✅
+    official: tarball unavailable ❌
+  darwin-arm64: OK ✅
 
-0.123.0
-  linux-x64: OK
-  darwin-arm64: OK
+0.123.0: OK ✅
+  main package: OK ✅
+  linux-x64: OK ✅
+  darwin-arm64: OK ✅
 ```
 
 JSON mode:
@@ -77,9 +86,76 @@ JSON mode:
     {
       "version": "0.124.0",
       "mainExists": true,
+      "mainPackageStatus": {
+        "metadataExists": true,
+        "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0.tgz",
+        "tarballAvailable": true,
+        "ok": true,
+        "reason": null,
+        "registries": {
+          "configured": {
+            "metadataExists": true,
+            "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0.tgz",
+            "tarballAvailable": true,
+            "ok": true,
+            "reason": null
+          },
+          "official": {
+            "metadataExists": true,
+            "tarballUrl": "https://registry.npmjs.org/@openai/codex/-/codex-0.124.0.tgz",
+            "tarballAvailable": true,
+            "ok": true,
+            "reason": null
+          }
+        }
+      },
       "platformStatuses": {
-        "linux-x64": false,
-        "darwin-arm64": true
+        "linux-x64": {
+          "metadataExists": true,
+          "tarballUrl": null,
+          "tarballAvailable": false,
+          "ok": false,
+          "reason": "registry issues found",
+          "registries": {
+            "configured": {
+              "metadataExists": true,
+              "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0-linux-x64.tgz",
+              "tarballAvailable": true,
+              "ok": true,
+              "reason": null
+            },
+            "official": {
+              "metadataExists": true,
+              "tarballUrl": "https://registry.npmjs.org/@openai/codex/-/codex-0.124.0-linux-x64.tgz",
+              "tarballAvailable": false,
+              "ok": false,
+              "reason": "tarball unavailable"
+            }
+          }
+        },
+        "darwin-arm64": {
+          "metadataExists": true,
+          "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0-darwin-arm64.tgz",
+          "tarballAvailable": true,
+          "ok": true,
+          "reason": null,
+          "registries": {
+            "configured": {
+              "metadataExists": true,
+              "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0-darwin-arm64.tgz",
+              "tarballAvailable": true,
+              "ok": true,
+              "reason": null
+            },
+            "official": {
+              "metadataExists": true,
+              "tarballUrl": "https://registry.npmjs.org/@openai/codex/-/codex-0.124.0-darwin-arm64.tgz",
+              "tarballAvailable": true,
+              "ok": true,
+              "reason": null
+            }
+          }
+        }
       },
       "ok": false
     }
@@ -107,7 +183,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: FelixWardUS/check-codex-release@v0.1.1
+      - uses: FelixWardUS/check-codex-release@v0.1.2
         with:
           platforms: linux-x64,darwin-arm64,win32-x64
           latest: 3
@@ -151,11 +227,13 @@ npm install -g .
 
 ### Does this install Codex CLI?
 
-No. It only reads npm package metadata with `npm view`.
+No. It reads npm package metadata with `npm view` and verifies package tarball
+availability, but it does not link or install Codex CLI.
 
 ### Does it require a GitHub token or npm token?
 
-No. Normal use only needs public npm registry access.
+No. Normal use only needs access to your local npm registry configuration and
+the public npm registry.
 
 ### Why not just install the latest Codex CLI?
 

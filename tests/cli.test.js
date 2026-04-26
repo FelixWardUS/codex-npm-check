@@ -13,6 +13,14 @@ async function makeStubNpm() {
     stubPath,
     `#!/usr/bin/env node
 const args = process.argv.slice(2).join(" ");
+if (args === "config get @openai:registry") {
+  process.stdout.write("undefined\\n");
+  process.exit(0);
+}
+if (args === "config get registry") {
+  process.stdout.write("https://registry.npmjs.org/\\n");
+  process.exit(0);
+}
 if (args === "view @openai/codex versions --json") {
   process.stdout.write(JSON.stringify([
     "0.122.0",
@@ -28,6 +36,11 @@ if (mainMatch) {
   process.stdout.write(mainMatch[1]);
   process.exit(0);
 }
+const mainTarballMatch = args.match(/^view @openai\\/codex@(\\d+\\.\\d+\\.\\d+) dist\\.tarball$/);
+if (mainTarballMatch) {
+  process.stdout.write("data:application/gzip,main-" + mainTarballMatch[1]);
+  process.exit(0);
+}
 const platformMatch = args.match(/^view @openai\\/codex@(\\d+\\.\\d+\\.\\d+)-(linux-x64|darwin-arm64) version$/);
 if (platformMatch) {
   if (platformMatch[1] === "0.124.0" && platformMatch[2] === "linux-x64") {
@@ -35,6 +48,11 @@ if (platformMatch) {
     process.exit(1);
   }
   process.stdout.write(platformMatch[0]);
+  process.exit(0);
+}
+const platformTarballMatch = args.match(/^view @openai\\/codex@(\\d+\\.\\d+\\.\\d+)-(linux-x64|darwin-arm64) dist\\.tarball$/);
+if (platformTarballMatch) {
+  process.stdout.write("data:application/gzip," + platformTarballMatch[1] + "-" + platformTarballMatch[2]);
   process.exit(0);
 }
 process.exit(1);
@@ -53,12 +71,24 @@ async function makeRegistryErrorStubNpm() {
     stubPath,
     `#!/usr/bin/env node
 const args = process.argv.slice(2).join(" ");
+if (args === "config get @openai:registry") {
+  process.stdout.write("undefined\\n");
+  process.exit(0);
+}
+if (args === "config get registry") {
+  process.stdout.write("https://registry.npmjs.org/\\n");
+  process.exit(0);
+}
 if (args === "view @openai/codex versions --json") {
   process.stdout.write(JSON.stringify(["0.124.0"]));
   process.exit(0);
 }
 if (args === "view @openai/codex@0.124.0 version") {
   process.stdout.write("0.124.0");
+  process.exit(0);
+}
+if (args === "view @openai/codex@0.124.0 dist.tarball") {
+  process.stdout.write("data:application/gzip,main-0.124.0");
   process.exit(0);
 }
 if (args === "view @openai/codex@0.124.0-linux-x64 version") {
@@ -92,7 +122,7 @@ test("ccr first run saves config and checks releases", async () => {
   assert.match(result.stdout, /Configure ccr/);
   assert.match(result.stdout, /Saved config/);
   assert.match(result.stdout, /0.124.0/);
-  assert.match(result.stdout, /linux-x64: missing/);
+  assert.match(result.stdout, /linux-x64: metadata missing ❌/);
 
   const saved = JSON.parse(await readFile(path.join(configHome, "ccr", "config.json"), "utf8"));
   assert.deepEqual(saved, {
@@ -205,8 +235,54 @@ test("ccr supports JSON output with one-run platform and latest overrides", asyn
   assert.equal(parsed.ok, false);
   assert.equal(parsed.versions.length, 1);
   assert.equal(parsed.versions[0].version, "0.124.0");
-  assert.equal(parsed.versions[0].platformStatuses["linux-x64"], false);
-  assert.equal(parsed.versions[0].platformStatuses["darwin-arm64"], true);
+  assert.deepEqual(parsed.versions[0].mainPackageStatus, {
+    metadataExists: true,
+    tarballUrl: "data:application/gzip,main-0.124.0",
+    tarballAvailable: true,
+    ok: true,
+    reason: null,
+    registries: {
+      official: {
+        metadataExists: true,
+        tarballUrl: "data:application/gzip,main-0.124.0",
+        tarballAvailable: true,
+        ok: true,
+        reason: null,
+      },
+    },
+  });
+  assert.deepEqual(parsed.versions[0].platformStatuses["linux-x64"], {
+    metadataExists: false,
+    tarballUrl: null,
+    tarballAvailable: false,
+    ok: false,
+    reason: "metadata missing",
+    registries: {
+      official: {
+        metadataExists: false,
+        tarballUrl: null,
+        tarballAvailable: false,
+        ok: false,
+        reason: "metadata missing",
+      },
+    },
+  });
+  assert.deepEqual(parsed.versions[0].platformStatuses["darwin-arm64"], {
+    metadataExists: true,
+    tarballUrl: "data:application/gzip,0.124.0-darwin-arm64",
+    tarballAvailable: true,
+    ok: true,
+    reason: null,
+    registries: {
+      official: {
+        metadataExists: true,
+        tarballUrl: "data:application/gzip,0.124.0-darwin-arm64",
+        tarballAvailable: true,
+        ok: true,
+        reason: null,
+      },
+    },
+  });
 });
 
 test("ccr checks an explicit version with a one-run platform override and no saved config", async () => {
@@ -231,7 +307,22 @@ test("ccr checks an explicit version with a one-run platform override and no sav
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.ok, true);
   assert.deepEqual(parsed.versions[0].platformStatuses, {
-    "linux-x64": true,
+    "linux-x64": {
+      metadataExists: true,
+      tarballUrl: "data:application/gzip,0.123.0-linux-x64",
+      tarballAvailable: true,
+      ok: true,
+      reason: null,
+      registries: {
+        official: {
+          metadataExists: true,
+          tarballUrl: "data:application/gzip,0.123.0-linux-x64",
+          tarballAvailable: true,
+          ok: true,
+          reason: null,
+        },
+      },
+    },
   });
 });
 
