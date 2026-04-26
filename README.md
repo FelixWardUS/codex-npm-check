@@ -84,29 +84,6 @@ the packages and tarballs are already available.
 - `win32-x64`
 - `win32-arm64`
 
-## GitHub Actions
-
-```yaml
-name: Check Codex npm release
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 * * * *"
-
-jobs:
-  codex-release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: FelixWardUS/codex-npm-check@v0.2.0
-        with:
-          platforms: linux-x64,darwin-arm64,win32-x64
-          latest: 3
-```
-
 ## Config
 
 Config is stored at:
