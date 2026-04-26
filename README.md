@@ -5,28 +5,22 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
 
-Avoid broken Codex CLI upgrades by checking whether `@openai/codex` and the
-platform packages you need are published to npm before you install.
+Check whether a Codex CLI npm release is actually ready before you install or
+upgrade it.
 
-`cnc` is a small terminal tool for developers who install Codex CLI across
-Linux, macOS, or Windows machines and want a quick release readiness check.
+`cnc` verifies the main `@openai/codex` package and the platform builds you care
+about. It checks both npm metadata and the real tarball URLs, using your
+configured npm registry plus the official npm registry.
 
-## Quick Start
+## Install
 
 ```bash
 npm install -g codex-npm-check
 cnc
 ```
 
-On first run, `cnc` asks which platforms you care about and how many latest
-stable Codex CLI versions to inspect. It saves that config for future checks.
-
-## Why
-
-Codex CLI ships through npm as `@openai/codex` plus platform-specific package
-variants. A release can be visible before every platform package you need is
-available. `cnc` catches that gap before the upgrade lands on your machine or
-in your CI job.
+On first run, `cnc` asks which platforms to check and how many latest stable
+Codex versions to inspect.
 
 ## Usage
 
@@ -40,26 +34,14 @@ cnc --show
 cnc --reset
 ```
 
-### Commands
+- `cnc` checks the latest stable releases with your saved config.
+- `cnc 0.124.0` checks one specific Codex version.
+- `--platform` overrides platforms for one run.
+- `--latest` overrides how many latest stable versions to check.
+- `--json` prints machine-readable output.
+- `--set`, `--show`, and `--reset` manage saved config.
 
-- `cnc` runs checks using the saved platform list and latest-version count.
-- `cnc 0.124.0` checks one specific Codex version with the saved platform list.
-- `cnc --platform linux-x64,darwin-arm64` overrides the saved platform list for one run.
-- `cnc --latest 3` overrides how many latest stable versions to inspect for one run.
-- `cnc --json` prints machine-readable results for scripts and CI.
-- `cnc --set` re-runs setup and overwrites the saved config.
-- `cnc --show` prints the current config.
-- `cnc --reset` deletes the current config.
-
-By default, `cnc` checks both your local npm registry configuration and the
-official npm registry. If your local npm registry is already
-`https://registry.npmjs.org/`, it checks that source only once. If any selected
-package metadata or package tarball is unavailable in any checked registry for
-any checked version, `cnc` exits with a non-zero status code.
-When checking latest releases, stable version lists are merged from both
-registries before the latest count is applied.
-
-## Example Output
+## Output
 
 ```text
 Checking latest 3 stable releases...
@@ -77,99 +59,35 @@ Checking latest 3 stable releases...
   darwin-arm64: OK ✅
 ```
 
-JSON mode:
+If any selected package is missing metadata or has an unavailable tarball in any
+checked registry, `cnc` exits non-zero.
 
-```json
-{
-  "ok": false,
-  "versions": [
-    {
-      "version": "0.124.0",
-      "mainExists": true,
-      "mainPackageStatus": {
-        "metadataExists": true,
-        "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0.tgz",
-        "tarballAvailable": true,
-        "ok": true,
-        "reason": null,
-        "registries": {
-          "configured": {
-            "metadataExists": true,
-            "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0.tgz",
-            "tarballAvailable": true,
-            "ok": true,
-            "reason": null
-          },
-          "official": {
-            "metadataExists": true,
-            "tarballUrl": "https://registry.npmjs.org/@openai/codex/-/codex-0.124.0.tgz",
-            "tarballAvailable": true,
-            "ok": true,
-            "reason": null
-          }
-        }
-      },
-      "platformStatuses": {
-        "linux-x64": {
-          "metadataExists": true,
-          "tarballUrl": null,
-          "tarballAvailable": false,
-          "ok": false,
-          "reason": "registry issues found",
-          "registries": {
-            "configured": {
-              "metadataExists": true,
-              "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0-linux-x64.tgz",
-              "tarballAvailable": true,
-              "ok": true,
-              "reason": null
-            },
-            "official": {
-              "metadataExists": true,
-              "tarballUrl": "https://registry.npmjs.org/@openai/codex/-/codex-0.124.0-linux-x64.tgz",
-              "tarballAvailable": false,
-              "ok": false,
-              "reason": "tarball unavailable"
-            }
-          }
-        },
-        "darwin-arm64": {
-          "metadataExists": true,
-          "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0-darwin-arm64.tgz",
-          "tarballAvailable": true,
-          "ok": true,
-          "reason": null,
-          "registries": {
-            "configured": {
-              "metadataExists": true,
-              "tarballUrl": "https://registry.npmmirror.com/@openai/codex/-/codex-0.124.0-darwin-arm64.tgz",
-              "tarballAvailable": true,
-              "ok": true,
-              "reason": null
-            },
-            "official": {
-              "metadataExists": true,
-              "tarballUrl": "https://registry.npmjs.org/@openai/codex/-/codex-0.124.0-darwin-arm64.tgz",
-              "tarballAvailable": true,
-              "ok": true,
-              "reason": null
-            }
-          }
-        }
-      },
-      "ok": false
-    }
-  ]
-}
-```
+## What It Catches
+
+`cnc` catches npm publishing and registry problems, including:
+
+- Missing `@openai/codex` release metadata.
+- Missing platform build metadata, such as `@openai/codex@0.124.0-win32-x64`.
+- Tarball URLs that exist in metadata but return an error.
+- Mirror registry drift from the official npm registry.
+
+It does not run Codex after install, so it will not catch runtime bugs, macOS
+signing problems, config regressions, or local npm optional dependency bugs when
+the packages and tarballs are already available.
+
+## Platforms
+
+- `linux-x64`
+- `linux-arm64`
+- `darwin-x64`
+- `darwin-arm64`
+- `win32-x64`
+- `win32-arm64`
 
 ## GitHub Actions
 
-Use the bundled action to fail CI when a Codex CLI release is incomplete for
-your target platforms:
-
 ```yaml
-name: Check Codex release
+name: Check Codex npm release
 
 on:
   workflow_dispatch:
@@ -189,32 +107,16 @@ jobs:
           latest: 3
 ```
 
-## Configuration
+## Config
 
-The saved config contains:
+Config is stored at:
 
-- The platform list to check.
-- How many latest stable Codex CLI versions to inspect.
+- `~/.config/codex-npm-check/config.json`
+- `$XDG_CONFIG_HOME/codex-npm-check/config.json`
 
-Config is stored under `~/.config/codex-npm-check/config.json` or
-`$XDG_CONFIG_HOME/codex-npm-check/config.json`. Tests can override this with
-`CNC_CONFIG_HOME`.
+Tests and scripts can override the config base directory with `CNC_CONFIG_HOME`.
 
-Supported platforms:
-
-- `linux-x64`
-- `linux-arm64`
-- `darwin-x64`
-- `darwin-arm64`
-- `win32-x64`
-- `win32-arm64`
-
-## Requirements
-
-- Node.js `20+`
-- `npm` available in `PATH`
-
-## Local Development
+## Development
 
 ```bash
 git clone https://github.com/FelixWardUS/codex-npm-check.git
@@ -223,24 +125,4 @@ npm test
 npm install -g .
 ```
 
-## FAQ
-
-### Does this install Codex CLI?
-
-No. It reads npm package metadata with `npm view` and verifies package tarball
-availability, but it does not link or install Codex CLI.
-
-### Does it require a GitHub token or npm token?
-
-No. Normal use only needs access to your local npm registry configuration and
-the public npm registry.
-
-### Why not just install the latest Codex CLI?
-
-That is fine for many cases. `cnc` is for teams and scripts that want to know
-whether the platform package they need exists before upgrading.
-
-## Support
-
-If this saved you from a broken Codex CLI install, consider starring the repo.
-Issues and pull requests are welcome.
+Requires Node.js 20+ and `npm` in `PATH`.
