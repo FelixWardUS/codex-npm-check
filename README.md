@@ -147,12 +147,6 @@ npm test
 npm install -g .
 ```
 
-If you specifically want a local symlink to this working tree, use:
-
-```bash
-bash scripts/install-local-link.sh
-```
-
 ## FAQ
 
 ### Does this install Codex CLI?

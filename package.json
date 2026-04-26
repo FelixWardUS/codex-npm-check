@@ -38,8 +38,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "test": "node --test",
-    "install:local": "bash scripts/install-local-link.sh"
+    "test": "node --test"
   },
   "engines": {
     "node": ">=20"
