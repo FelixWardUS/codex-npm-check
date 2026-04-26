@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement for ccr
+about: Suggest an improvement for cnc
 title: ""
 labels: enhancement
 assignees: ""

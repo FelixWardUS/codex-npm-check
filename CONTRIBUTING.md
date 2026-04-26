@@ -1,12 +1,12 @@
 # Contributing
 
-Thanks for helping improve `check-codex-release`.
+Thanks for helping improve `codex-npm-check`.
 
 ## Development
 
 ```bash
 npm test
-node bin/ccr.js --help
+node bin/cnc.js --help
 ```
 
 Use Node.js 20 or newer. The project uses the built-in `node:test` runner and
@@ -25,7 +25,7 @@ does not require third-party runtime dependencies.
 npm test
 npm pack --dry-run
 npm publish --registry=https://registry.npmjs.org/
-git tag v0.1.0
-git push origin main --tags
-gh release create v0.1.0 --notes-file RELEASE_NOTES.md
+git tag v0.2.0
+git push origin main v0.2.0
+gh release create v0.2.0 --notes-file RELEASE_NOTES.md
 ```

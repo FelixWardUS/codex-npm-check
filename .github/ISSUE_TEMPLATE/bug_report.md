@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a reproducible problem with ccr
+about: Report a reproducible problem with cnc
 title: ""
 labels: bug
 assignees: ""
@@ -15,7 +15,7 @@ assignees: ""
 ## Reproduction
 
 ```bash
-ccr --help
+cnc --help
 ```
 
 ## Environment
@@ -23,4 +23,4 @@ ccr --help
 - OS:
 - Node.js:
 - npm:
-- ccr version:
+- cnc version:

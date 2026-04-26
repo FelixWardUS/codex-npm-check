@@ -8,7 +8,7 @@ import { getLatestStableVersions, parseStableVersions } from "../src/npm.js";
 const OFFICIAL_REGISTRY = "https://registry.npmjs.org/";
 
 async function makeStubNpm(responses) {
-  const dir = await mkdtemp(path.join(tmpdir(), "ccr-npm-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "cnc-npm-"));
   const stubPath = path.join(dir, "npm");
   const mergedResponses = {
     "config get @openai:registry": { stdout: "undefined\n" },

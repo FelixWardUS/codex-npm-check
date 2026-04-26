@@ -1,4 +1,4 @@
-name: Check Codex release
+name: Check Codex npm release
 description: Check whether Codex CLI npm releases include the platform packages you need.
 author: FelixWard
 
@@ -26,7 +26,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check Codex release packages
+    - name: Check Codex npm release packages
       shell: bash
       run: |
         set -euo pipefail
@@ -43,4 +43,4 @@ runs:
           args+=("--json")
         fi
 
-        node "$GITHUB_ACTION_PATH/bin/ccr.js" "${args[@]}"
+        node "$GITHUB_ACTION_PATH/bin/cnc.js" "${args[@]}"

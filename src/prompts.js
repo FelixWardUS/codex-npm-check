@@ -56,7 +56,7 @@ export async function promptForConfig({
   output = process.stdout,
   defaults = DEFAULT_CONFIG,
 }) {
-  output.write("Configure ccr\n\n");
+  output.write("Configure codex-npm-check\n\n");
   output.write("Target platforms:\n");
   PLATFORM_OPTIONS.forEach((option, index) => {
     output.write(`  ${index + 1}. ${option.label} (${option.id})\n`);

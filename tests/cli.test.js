@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 async function makeStubNpm() {
-  const dir = await mkdtemp(path.join(tmpdir(), "ccr-cli-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "cnc-cli-"));
   const stubPath = path.join(dir, "npm");
 
   await writeFile(
@@ -64,7 +64,7 @@ process.exit(1);
 }
 
 async function makeRegistryErrorStubNpm() {
-  const dir = await mkdtemp(path.join(tmpdir(), "ccr-cli-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "cnc-cli-"));
   const stubPath = path.join(dir, "npm");
 
   await writeFile(
@@ -103,39 +103,39 @@ process.exit(1);
   return { dir, stubPath };
 }
 
-test("ccr first run saves config and checks releases", async () => {
+test("cnc first run saves config and checks releases", async () => {
   const { dir, stubPath } = await makeStubNpm();
   const configHome = path.join(dir, "config");
 
-  const result = spawnSync("node", ["bin/ccr.js"], {
+  const result = spawnSync("node", ["bin/cnc.js"], {
     cwd: process.cwd(),
     encoding: "utf8",
     input: "1,4\n3\n",
     env: {
       ...process.env,
       NPM_BIN: stubPath,
-      CCR_CONFIG_HOME: configHome,
+      CNC_CONFIG_HOME: configHome,
     },
   });
 
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /Configure ccr/);
+  assert.match(result.stdout, /Configure codex-npm-check/);
   assert.match(result.stdout, /Saved config/);
   assert.match(result.stdout, /0.124.0/);
   assert.match(result.stdout, /linux-x64: metadata missing ❌/);
 
-  const saved = JSON.parse(await readFile(path.join(configHome, "ccr", "config.json"), "utf8"));
+  const saved = JSON.parse(await readFile(path.join(configHome, "codex-npm-check", "config.json"), "utf8"));
   assert.deepEqual(saved, {
     platforms: ["linux-x64", "darwin-arm64"],
     latestCount: 3,
   });
 });
 
-test("ccr --show prints the saved configuration", async () => {
+test("cnc --show prints the saved configuration", async () => {
   const { dir, stubPath } = await makeStubNpm();
   const configHome = path.join(dir, "config");
   await writeFile(
-    path.join(configHome, "ccr", "config.json"),
+    path.join(configHome, "codex-npm-check", "config.json"),
     JSON.stringify({
       platforms: ["linux-x64", "darwin-arm64"],
       latestCount: 2,
@@ -143,10 +143,10 @@ test("ccr --show prints the saved configuration", async () => {
     { encoding: "utf8", flag: "w" },
   ).catch(async () => {
     await import("node:fs/promises").then(({ mkdir }) =>
-      mkdir(path.join(configHome, "ccr"), { recursive: true }),
+      mkdir(path.join(configHome, "codex-npm-check"), { recursive: true }),
     );
     await writeFile(
-      path.join(configHome, "ccr", "config.json"),
+      path.join(configHome, "codex-npm-check", "config.json"),
       JSON.stringify({
         platforms: ["linux-x64", "darwin-arm64"],
         latestCount: 2,
@@ -155,13 +155,13 @@ test("ccr --show prints the saved configuration", async () => {
     );
   });
 
-  const result = spawnSync("node", ["bin/ccr.js", "--show"], {
+  const result = spawnSync("node", ["bin/cnc.js", "--show"], {
     cwd: process.cwd(),
     encoding: "utf8",
     env: {
       ...process.env,
       NPM_BIN: stubPath,
-      CCR_CONFIG_HOME: configHome,
+      CNC_CONFIG_HOME: configHome,
     },
   });
 
@@ -171,11 +171,11 @@ test("ccr --show prints the saved configuration", async () => {
   assert.match(result.stdout, /Latest stable versions: 2/);
 });
 
-test("ccr --reset removes the saved configuration", async () => {
+test("cnc --reset removes the saved configuration", async () => {
   const { dir, stubPath } = await makeStubNpm();
   const configHome = path.join(dir, "config");
-  const configPath = path.join(configHome, "ccr", "config.json");
-  await import("node:fs/promises").then(({ mkdir }) => mkdir(path.join(configHome, "ccr"), { recursive: true }));
+  const configPath = path.join(configHome, "codex-npm-check", "config.json");
+  await import("node:fs/promises").then(({ mkdir }) => mkdir(path.join(configHome, "codex-npm-check"), { recursive: true }));
   await writeFile(
     configPath,
     JSON.stringify({
@@ -185,13 +185,13 @@ test("ccr --reset removes the saved configuration", async () => {
     "utf8",
   );
 
-  const result = spawnSync("node", ["bin/ccr.js", "--reset"], {
+  const result = spawnSync("node", ["bin/cnc.js", "--reset"], {
     cwd: process.cwd(),
     encoding: "utf8",
     env: {
       ...process.env,
       NPM_BIN: stubPath,
-      CCR_CONFIG_HOME: configHome,
+      CNC_CONFIG_HOME: configHome,
     },
   });
 
@@ -200,29 +200,29 @@ test("ccr --reset removes the saved configuration", async () => {
   await assert.rejects(access(configPath));
 });
 
-test("ccr -set is rejected as an invalid option", async () => {
-  const result = spawnSync("node", ["bin/ccr.js", "-set"], {
+test("cnc -set is rejected as an invalid option", async () => {
+  const result = spawnSync("node", ["bin/cnc.js", "-set"], {
     cwd: process.cwd(),
     encoding: "utf8",
   });
 
   assert.equal(result.status, 64);
-  assert.match(result.stdout, /Usage: ccr/);
+  assert.match(result.stdout, /Usage: cnc/);
 });
 
-test("ccr supports JSON output with one-run platform and latest overrides", async () => {
+test("cnc supports JSON output with one-run platform and latest overrides", async () => {
   const { dir, stubPath } = await makeStubNpm();
 
   const result = spawnSync(
     "node",
-    ["bin/ccr.js", "--platform", "linux-x64,darwin-arm64", "--latest", "1", "--json"],
+    ["bin/cnc.js", "--platform", "linux-x64,darwin-arm64", "--latest", "1", "--json"],
     {
       cwd: process.cwd(),
       encoding: "utf8",
       env: {
         ...process.env,
         NPM_BIN: stubPath,
-        CCR_CONFIG_HOME: path.join(dir, "config"),
+        CNC_CONFIG_HOME: path.join(dir, "config"),
       },
     },
   );
@@ -285,19 +285,19 @@ test("ccr supports JSON output with one-run platform and latest overrides", asyn
   });
 });
 
-test("ccr checks an explicit version with a one-run platform override and no saved config", async () => {
+test("cnc checks an explicit version with a one-run platform override and no saved config", async () => {
   const { dir, stubPath } = await makeStubNpm();
 
   const result = spawnSync(
     "node",
-    ["bin/ccr.js", "0.123.0", "--platform=linux-x64", "--json"],
+    ["bin/cnc.js", "0.123.0", "--platform=linux-x64", "--json"],
     {
       cwd: process.cwd(),
       encoding: "utf8",
       env: {
         ...process.env,
         NPM_BIN: stubPath,
-        CCR_CONFIG_HOME: path.join(dir, "config"),
+        CNC_CONFIG_HOME: path.join(dir, "config"),
       },
     },
   );
@@ -326,30 +326,30 @@ test("ccr checks an explicit version with a one-run platform override and no sav
   });
 });
 
-test("ccr rejects invalid one-run platforms", async () => {
-  const result = spawnSync("node", ["bin/ccr.js", "--platform", "linux-riscv64"], {
+test("cnc rejects invalid one-run platforms", async () => {
+  const result = spawnSync("node", ["bin/cnc.js", "--platform", "linux-riscv64"], {
     cwd: process.cwd(),
     encoding: "utf8",
   });
 
   assert.equal(result.status, 64);
   assert.match(result.stdout, /Unsupported platform: linux-riscv64/);
-  assert.match(result.stdout, /Usage: ccr/);
+  assert.match(result.stdout, /Usage: cnc/);
 });
 
-test("ccr reports npm query failures that are not missing packages", async () => {
+test("cnc reports npm query failures that are not missing packages", async () => {
   const { dir, stubPath } = await makeRegistryErrorStubNpm();
 
   const result = spawnSync(
     "node",
-    ["bin/ccr.js", "--platform", "linux-x64", "--latest", "1", "--json"],
+    ["bin/cnc.js", "--platform", "linux-x64", "--latest", "1", "--json"],
     {
       cwd: process.cwd(),
       encoding: "utf8",
       env: {
         ...process.env,
         NPM_BIN: stubPath,
-        CCR_CONFIG_HOME: path.join(dir, "config"),
+        CNC_CONFIG_HOME: path.join(dir, "config"),
       },
     },
   );

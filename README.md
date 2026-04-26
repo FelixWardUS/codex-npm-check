@@ -1,61 +1,61 @@
-# check-codex-release
+# codex-npm-check
 
-[![CI](https://github.com/FelixWardUS/check-codex-release/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixWardUS/check-codex-release/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/check-codex-release.svg)](https://www.npmjs.com/package/check-codex-release)
+[![CI](https://github.com/FelixWardUS/codex-npm-check/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixWardUS/codex-npm-check/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/codex-npm-check.svg)](https://www.npmjs.com/package/codex-npm-check)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
 
 Avoid broken Codex CLI upgrades by checking whether `@openai/codex` and the
 platform packages you need are published to npm before you install.
 
-`ccr` is a small terminal tool for developers who install Codex CLI across
+`cnc` is a small terminal tool for developers who install Codex CLI across
 Linux, macOS, or Windows machines and want a quick release readiness check.
 
 ## Quick Start
 
 ```bash
-npm install -g check-codex-release
-ccr
+npm install -g codex-npm-check
+cnc
 ```
 
-On first run, `ccr` asks which platforms you care about and how many latest
+On first run, `cnc` asks which platforms you care about and how many latest
 stable Codex CLI versions to inspect. It saves that config for future checks.
 
 ## Why
 
 Codex CLI ships through npm as `@openai/codex` plus platform-specific package
 variants. A release can be visible before every platform package you need is
-available. `ccr` catches that gap before the upgrade lands on your machine or
+available. `cnc` catches that gap before the upgrade lands on your machine or
 in your CI job.
 
 ## Usage
 
 ```bash
-ccr
-ccr 0.124.0
-ccr --platform linux-x64,darwin-arm64 --latest 3
-ccr 0.124.0 --platform win32-x64 --json
-ccr --set
-ccr --show
-ccr --reset
+cnc
+cnc 0.124.0
+cnc --platform linux-x64,darwin-arm64 --latest 3
+cnc 0.124.0 --platform win32-x64 --json
+cnc --set
+cnc --show
+cnc --reset
 ```
 
 ### Commands
 
-- `ccr` runs checks using the saved platform list and latest-version count.
-- `ccr 0.124.0` checks one specific Codex version with the saved platform list.
-- `ccr --platform linux-x64,darwin-arm64` overrides the saved platform list for one run.
-- `ccr --latest 3` overrides how many latest stable versions to inspect for one run.
-- `ccr --json` prints machine-readable results for scripts and CI.
-- `ccr --set` re-runs setup and overwrites the saved config.
-- `ccr --show` prints the current config.
-- `ccr --reset` deletes the current config.
+- `cnc` runs checks using the saved platform list and latest-version count.
+- `cnc 0.124.0` checks one specific Codex version with the saved platform list.
+- `cnc --platform linux-x64,darwin-arm64` overrides the saved platform list for one run.
+- `cnc --latest 3` overrides how many latest stable versions to inspect for one run.
+- `cnc --json` prints machine-readable results for scripts and CI.
+- `cnc --set` re-runs setup and overwrites the saved config.
+- `cnc --show` prints the current config.
+- `cnc --reset` deletes the current config.
 
-By default, `ccr` checks both your local npm registry configuration and the
+By default, `cnc` checks both your local npm registry configuration and the
 official npm registry. If your local npm registry is already
 `https://registry.npmjs.org/`, it checks that source only once. If any selected
 package metadata or package tarball is unavailable in any checked registry for
-any checked version, `ccr` exits with a non-zero status code.
+any checked version, `cnc` exits with a non-zero status code.
 When checking latest releases, stable version lists are merged from both
 registries before the latest count is applied.
 
@@ -183,7 +183,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: FelixWardUS/check-codex-release@v0.1.2
+      - uses: FelixWardUS/codex-npm-check@v0.2.0
         with:
           platforms: linux-x64,darwin-arm64,win32-x64
           latest: 3
@@ -196,9 +196,9 @@ The saved config contains:
 - The platform list to check.
 - How many latest stable Codex CLI versions to inspect.
 
-Config is stored under `~/.config/ccr/config.json` or
-`$XDG_CONFIG_HOME/ccr/config.json`. Tests can override this with
-`CCR_CONFIG_HOME`.
+Config is stored under `~/.config/codex-npm-check/config.json` or
+`$XDG_CONFIG_HOME/codex-npm-check/config.json`. Tests can override this with
+`CNC_CONFIG_HOME`.
 
 Supported platforms:
 
@@ -217,8 +217,8 @@ Supported platforms:
 ## Local Development
 
 ```bash
-git clone https://github.com/FelixWardUS/check-codex-release.git
-cd check-codex-release
+git clone https://github.com/FelixWardUS/codex-npm-check.git
+cd codex-npm-check
 npm test
 npm install -g .
 ```
@@ -237,7 +237,7 @@ the public npm registry.
 
 ### Why not just install the latest Codex CLI?
 
-That is fine for many cases. `ccr` is for teams and scripts that want to know
+That is fine for many cases. `cnc` is for teams and scripts that want to know
 whether the platform package they need exists before upgrading.
 
 ## Support

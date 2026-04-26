@@ -1,22 +1,15 @@
 # Changelog
 
-## 0.1.1 - 2026-04-25
-
-### Fixed
-
-- Treat only npm `E404` responses as missing packages; other npm query failures now surface as errors instead of false missing-platform results.
+## 0.2.0 - 2026-04-26
 
 ### Changed
 
-- Document Node.js 20 setup in the GitHub Actions example.
-- Clarify release install instructions with pinned npm and source install options.
-
-## 0.1.0 - 2026-04-25
+- Rename the npm package to `codex-npm-check`.
+- Rename the CLI entrypoint to `cnc` and expose `codex-npm-check` as a long command alias.
+- Store new configuration under `~/.config/codex-npm-check/config.json` or `$XDG_CONFIG_HOME/codex-npm-check/config.json`.
 
 ### Added
 
-- Initial `ccr` CLI for checking whether selected Codex CLI platform packages are published.
-- Interactive first-run setup with saved config under `~/.config/ccr/config.json` or `$XDG_CONFIG_HOME/ccr/config.json`.
-- Checks for the latest stable Codex CLI releases or one explicit version.
-- Non-zero exit code when any selected platform package is missing.
-- Test coverage for config handling, stable version parsing, CLI behavior, and package metadata.
+- Check both the configured npm registry and `https://registry.npmjs.org/` by default.
+- Merge stable version lists from both registries before applying the latest-version count.
+- Include per-registry status details under `registries` in JSON output.

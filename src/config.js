@@ -23,8 +23,8 @@ export function normalizeConfig(config) {
 }
 
 export function getConfigBaseDir() {
-  if (process.env.CCR_CONFIG_HOME) {
-    return process.env.CCR_CONFIG_HOME;
+  if (process.env.CNC_CONFIG_HOME) {
+    return process.env.CNC_CONFIG_HOME;
   }
 
   const xdgConfigHome = process.env.XDG_CONFIG_HOME;
@@ -36,7 +36,7 @@ export function getConfigBaseDir() {
 }
 
 export function getConfigPath({ baseDir = getConfigBaseDir() } = {}) {
-  return path.join(baseDir, "ccr", "config.json");
+  return path.join(baseDir, "codex-npm-check", "config.json");
 }
 
 export async function loadConfig({ baseDir = getConfigBaseDir() } = {}) {

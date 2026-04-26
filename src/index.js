@@ -7,11 +7,11 @@ const PLATFORM_IDS = new Set(PLATFORM_OPTIONS.map((option) => option.id));
 
 function usage() {
   return [
-    "Usage: ccr [version]",
-    "       ccr [version] --platform <platforms> [--latest <count>] [--json]",
-    "       ccr --set",
-    "       ccr --show",
-    "       ccr --reset",
+    "Usage: cnc [version]",
+    "       cnc [version] --platform <platforms> [--latest <count>] [--json]",
+    "       cnc --set",
+    "       cnc --show",
+    "       cnc --reset",
     "",
     "Options:",
     "  --platform <list>  Comma-separated platform IDs for one run",
@@ -19,11 +19,11 @@ function usage() {
     "  --json             Print machine-readable JSON output",
     "",
     "Commands:",
-    "  ccr         Run checks using saved configuration",
-    "  ccr 0.124.0 Check one specific Codex version with saved platforms",
-    "  ccr --set   Update saved platforms and latest-version count",
-    "  ccr --show  Print current configuration",
-    "  ccr --reset Delete current configuration",
+    "  cnc         Run checks using saved configuration",
+    "  cnc 0.124.0 Check one specific Codex version with saved platforms",
+    "  cnc --set   Update saved platforms and latest-version count",
+    "  cnc --show  Print current configuration",
+    "  cnc --reset Delete current configuration",
     "",
   ].join("\n");
 }
@@ -251,7 +251,7 @@ export async function main(args) {
   if (options.show) {
     const config = await loadConfig();
     if (!config) {
-      process.stdout.write("No saved configuration. Run `ccr` or `ccr --set` first.\n");
+      process.stdout.write("No saved configuration. Run `cnc` or `cnc --set` first.\n");
       return;
     }
 
